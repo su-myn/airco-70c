@@ -3463,6 +3463,7 @@ def delete_contact(id):
 
 # Create the database tables
 with app.app_context():
+    db.drop_all()
     db.create_all()
     create_default_data()
     create_account_types()
