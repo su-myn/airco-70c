@@ -1358,160 +1358,172 @@ def admin_replacements():
 
 # Function to create default roles and a default company
 def create_default_data():
+    try:
+        # Wrap the entire function in a try-except to handle any unexpected errors
 
-    admin_user = User.query.filter_by(email='admin@example.com').first()
-    if not admin_user:
+        admin_user = User.query.filter_by(email='admin@example.com').first()
+        if not admin_user:
+            # Create account types first
+            create_account_types()
 
-        # Create account types first
-        create_account_types()
+            # Check if default company exists
+            default_company = Company.query.filter_by(name="Default Company").first()
+            if not default_company:
+                # Get standard account type
+                standard_account = AccountType.query.filter_by(name="Standard Account").first()
 
-        # Check if default company exists
-        default_company = Company.query.filter_by(name="Default Company").first()
-        if not default_company:
-            # Get standard account type
-            standard_account = AccountType.query.filter_by(name="Standard Account").first()
-
-            default_company = Company(
-                name="Default Company",
-                account_type_id=standard_account.id if standard_account else 1
-            )
-            db.session.add(default_company)
-            db.session.commit()
-            print("Default company created")
-
-        # Create default roles if they don't exist
-        roles = {
-            "Admin": {
-                "can_view_complaints": True,
-                "can_manage_complaints": True,
-                "can_view_issues": True,
-                "can_manage_issues": True,
-                "can_view_repairs": True,
-                "can_manage_repairs": True,
-                "can_view_replacements": True,
-                "can_manage_replacements": True,
-                "can_view_bookings": True,
-                "can_manage_bookings": True,
-                "is_admin": True,
-                "can_manage_users": True
-            },
-            "Manager": {
-                "can_view_complaints": True,
-                "can_manage_complaints": True,
-                "can_view_issues": True,
-                "can_manage_issues": True,
-                "can_view_repairs": True,
-                "can_manage_repairs": True,
-                "can_view_replacements": True,
-                "can_manage_replacements": True,
-                "can_view_bookings": True,
-                "can_manage_bookings": True,
-                "is_admin": False,
-                "can_manage_users": False
-            },
-            "Technician": {
-                "can_view_complaints": True,
-                "can_manage_complaints": False,
-                "can_view_repairs": True,
-                "can_manage_repairs": True,
-                "can_view_replacements": False,
-                "can_manage_replacements": False,
-                "is_admin": False,
-                "can_manage_users": False
-            },
-            "Cleaner": {
-                "can_view_complaints": False,
-                "can_manage_complaints": False,
-                "can_view_repairs": False,
-                "can_manage_repairs": False,
-                "can_view_replacements": True,
-                "can_manage_replacements": True,
-                "is_admin": False,
-                "can_manage_users": False
-            }
-        }
-
-        for role_name, permissions in roles.items():
-            role = Role.query.filter_by(name=role_name).first()
-            if not role:
-                role = Role(name=role_name, **permissions)
-                db.session.add(role)
-                db.session.commit()
-                print(f"Role '{role_name}' created")
-
-        # Create admin user if no admin exists
-        admin_role = Role.query.filter_by(name="Admin").first()
-        admin = User.query.filter_by(is_admin=True).first()
-
-        if not admin and admin_role:
-            password = 'admin123'  # Default password
-            hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-            admin = User(
-                name='Admin',
-                email='admin@example.com',
-                password=hashed_password,
-                role_id=admin_role.id,
-                company_id=default_company.id
-            )
-            db.session.add(admin)
-            db.session.commit()
-            print('Admin user created with email: admin@example.com and password: admin123')
-
-        # Create a few sample units for the default company
-        if Unit.query.count() == 0:
-            sample_units = [
-                {"unit_number": "A-101", "building": "Block A", "floor": 1, "description": "Corner unit",
-                 "is_occupied": True},
-                {"unit_number": "A-102", "building": "Block A", "floor": 1, "description": "Middle unit",
-                 "is_occupied": True},
-                {"unit_number": "B-201", "building": "Block B", "floor": 2, "description": "End unit", "is_occupied": True},
-                {"unit_number": "C-301", "building": "Block C", "floor": 3, "description": "Penthouse",
-                 "is_occupied": False},
-            ]
-
-            for unit_data in sample_units:
-                unit = Unit(
-                    unit_number=unit_data["unit_number"],
-                    building=unit_data["building"],
-                    floor=unit_data["floor"],
-                    description=unit_data["description"],
-                    is_occupied=unit_data["is_occupied"],
-                    company_id=default_company.id
+                default_company = Company(
+                    name="Default Company",
+                    account_type_id=standard_account.id if standard_account else 1
                 )
-                db.session.add(unit)
+                db.session.add(default_company)
+                db.session.commit()
+                print("Default company created")
 
-            db.session.commit()
-            print("Default data created successfully")
+            # Create default roles if they don't exist
+            roles = {
+                "Admin": {
+                    "can_view_complaints": True,
+                    "can_manage_complaints": True,
+                    "can_view_issues": True,
+                    "can_manage_issues": True,
+                    "can_view_repairs": True,
+                    "can_manage_repairs": True,
+                    "can_view_replacements": True,
+                    "can_manage_replacements": True,
+                    "can_view_bookings": True,
+                    "can_manage_bookings": True,
+                    "is_admin": True,
+                    "can_manage_users": True
+                },
+                "Manager": {
+                    "can_view_complaints": True,
+                    "can_manage_complaints": True,
+                    "can_view_issues": True,
+                    "can_manage_issues": True,
+                    "can_view_repairs": True,
+                    "can_manage_repairs": True,
+                    "can_view_replacements": True,
+                    "can_manage_replacements": True,
+                    "can_view_bookings": True,
+                    "can_manage_bookings": True,
+                    "is_admin": False,
+                    "can_manage_users": False
+                },
+                "Technician": {
+                    "can_view_complaints": True,
+                    "can_manage_complaints": False,
+                    "can_view_repairs": True,
+                    "can_manage_repairs": True,
+                    "can_view_replacements": False,
+                    "can_manage_replacements": False,
+                    "is_admin": False,
+                    "can_manage_users": False
+                },
+                "Cleaner": {
+                    "can_view_complaints": False,
+                    "can_manage_complaints": False,
+                    "can_view_repairs": False,
+                    "can_manage_repairs": False,
+                    "can_view_replacements": True,
+                    "can_manage_replacements": True,
+                    "is_admin": False,
+                    "can_manage_users": False
+                }
+            }
+
+            for role_name, permissions in roles.items():
+                role = Role.query.filter_by(name=role_name).first()
+                if not role:
+                    role = Role(name=role_name, **permissions)
+                    db.session.add(role)
+                    db.session.commit()
+                    print(f"Role '{role_name}' created")
+
+            # Create admin user if no admin exists
+            admin_role = Role.query.filter_by(name="Admin").first()
+            admin = User.query.filter_by(is_admin=True).first()
+
+            if not admin and admin_role:
+                password = 'admin123'  # Default password
+                hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+                admin = User(
+                    name='Admin',
+                    email='admin@example.com',
+                    password=hashed_password,
+                    role_id=admin_role.id,
+                    company_id=default_company.id,
+                    account_type_id=standard_account.id if standard_account else 1  # Add account_type_id
+                )
+                db.session.add(admin)
+                db.session.commit()
+                print('Admin user created with email: admin@example.com and password: admin123')
+
+            # Create a few sample units for the default company
+            if Unit.query.count() == 0:
+                sample_units = [
+                    {"unit_number": "A-101", "building": "Block A", "floor": 1, "description": "Corner unit",
+                     "is_occupied": True},
+                    {"unit_number": "A-102", "building": "Block A", "floor": 1, "description": "Middle unit",
+                     "is_occupied": True},
+                    {"unit_number": "B-201", "building": "Block B", "floor": 2, "description": "End unit",
+                     "is_occupied": True},
+                    {"unit_number": "C-301", "building": "Block C", "floor": 3, "description": "Penthouse",
+                     "is_occupied": False},
+                ]
+
+                for unit_data in sample_units:
+                    unit = Unit(
+                        unit_number=unit_data["unit_number"],
+                        building=unit_data["building"],
+                        floor=unit_data["floor"],
+                        description=unit_data["description"],
+                        is_occupied=unit_data["is_occupied"],
+                        company_id=default_company.id
+                    )
+                    db.session.add(unit)
+
+                db.session.commit()
+                print("Default data created successfully")
+            else:
+                print("Default data already exists")
         else:
-            print("Default data already exists")
+            print("Admin user already exists, skipping default data creation")
 
-    # Call the create_issue_defaults function
-    create_issue_defaults()
+        # Call the create_issue_defaults function
+        create_issue_defaults()
 
-    # Add the create_cleaner_role function definition here
-    def create_cleaner_role():
-        # Check if Cleaner role exists
-        cleaner_role = Role.query.filter_by(name="Cleaner").first()
-        if not cleaner_role:
-            cleaner_role = Role(
-                name="Cleaner",
-                can_view_complaints=True,
-                can_manage_complaints=False,
-                can_view_issues=True,
-                can_manage_issues=False,
-                can_view_repairs=False,
-                can_manage_repairs=False,
-                can_view_replacements=False,
-                can_manage_replacements=False,
-                is_admin=False,
-                can_manage_users=False
-            )
-            db.session.add(cleaner_role)
-            db.session.commit()
-            print("Cleaner role created")
+        # Define cleaner_role function within try block
+        def create_cleaner_role():
+            # Check if Cleaner role exists
+            cleaner_role = Role.query.filter_by(name="Cleaner").first()
+            if not cleaner_role:
+                cleaner_role = Role(
+                    name="Cleaner",
+                    can_view_complaints=True,
+                    can_manage_complaints=False,
+                    can_view_issues=True,
+                    can_manage_issues=False,
+                    can_view_repairs=False,
+                    can_manage_repairs=False,
+                    can_view_replacements=False,
+                    can_manage_replacements=False,
+                    is_admin=False,
+                    can_manage_users=False
+                )
+                db.session.add(cleaner_role)
+                db.session.commit()
+                print("Cleaner role created")
+            else:
+                print("Cleaner role already exists")
 
-    # Call the function at the end of create_default_data
-    create_cleaner_role()
+        # Call the function at the end of create_default_data
+        create_cleaner_role()
+
+    except Exception as e:
+        db.session.rollback()  # Rollback any failed transactions
+        print(f"Error in create_default_data: {str(e)}")
+        # Continue execution - don't let data initialization stop the app from running
 
 
 def create_account_types():
